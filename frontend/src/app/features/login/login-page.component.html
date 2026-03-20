@@ -1,0 +1,23 @@
+<section class="page-grid">
+  <div class="hero panel">
+    <p class="eyebrow">Access</p>
+    <h2>Sign in and recover your tenant context fast.</h2>
+    <p>
+      This login is wired to the JWT backend endpoint. Once authenticated, the selected tenant is attached to every request.
+    </p>
+  </div>
+
+  <form class="panel form" [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Email
+      <input type="email" formControlName="email" placeholder="owner@example.com">
+    </label>
+    <label>
+      Password
+      <input type="password" formControlName="password" placeholder="Your password">
+    </label>
+    <button type="submit" [disabled]="form.invalid || loading">{{ loading ? 'Signing in...' : 'Sign in' }}</button>
+    <p class="message error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <p class="message ok" *ngIf="successMessage">{{ successMessage }}</p>
+  </form>
+</section>

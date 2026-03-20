@@ -1,0 +1,40 @@
+<div class="shell">
+  <button class="hamburger" (click)="toggleMenu()">☰</button>
+
+  <aside class="sidebar" [class.open]="isMenuOpen">
+    <div>
+      <p class="eyebrow">Operations SaaS</p>
+      <h1>OrderFlow</h1>
+      <p class="summary">Track customers, orders, status transitions, and tenant activity from one operational workspace.</p>
+    </div>
+
+    <nav class="nav">
+      <ng-container *ngIf="authService.isAuthenticated(); else loggedOutNav">
+        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/customers" routerLinkActive="active">Customers</a>
+        <a routerLink="/orders" routerLinkActive="active">Orders</a>
+        <button type="button" class="nav-button" (click)="logout()">Logout</button>
+      </ng-container>
+      <ng-template #loggedOutNav>
+        <a routerLink="/login" routerLinkActive="active">Login</a>
+      </ng-template>
+    </nav>
+
+    <section class="tenant-card" *ngIf="authService.currentUser() as user">
+      <h2>{{ user.first_name || user.email }}</h2>
+      <p>{{ user.email }}</p>
+      <label>
+        Active tenant
+        <select [value]="authService.activeTenantSlug() ?? ''" (change)="setTenant($any($event.target).value)">
+          <option *ngFor="let membership of user.memberships" [value]="membership.tenant_slug">
+            {{ membership.tenant_name }} · {{ membership.role }}
+          </option>
+        </select>
+      </label>
+    </section>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

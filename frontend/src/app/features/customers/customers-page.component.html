@@ -1,0 +1,83 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Customers</p>
+    <h2>Customer records</h2>
+  </div>
+  <div class="actions">
+    <button type="button" class="secondary" (click)="resetForm()">New customer</button>
+    <button type="button" (click)="load()">Refresh customers</button>
+  </div>
+</section>
+
+<p class="status" *ngIf="message">{{ message }}</p>
+
+<section class="workspace">
+  <form class="panel form-panel" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">{{ editingCustomerId ? 'Edit customer' : 'Create customer' }}</p>
+        <h3>{{ editingCustomerId ? 'Update record' : 'Add a tenant customer' }}</h3>
+      </div>
+      <button *ngIf="editingCustomerId" type="button" class="secondary" (click)="resetForm()">Cancel</button>
+    </div>
+
+    <label>
+      Full name
+      <input type="text" formControlName="full_name" placeholder="Customer full name">
+    </label>
+
+    <label>
+      Company
+      <input type="text" formControlName="company_name" placeholder="Company name">
+    </label>
+
+    <label>
+      Email
+      <input type="email" formControlName="email" placeholder="contact@example.com">
+    </label>
+
+    <label>
+      Phone
+      <input type="text" formControlName="phone" placeholder="+34 600 000 000">
+    </label>
+
+    <label>
+      Notes
+      <textarea rows="4" formControlName="notes" placeholder="Operational notes"></textarea>
+    </label>
+
+    <p class="error" *ngIf="form.controls.full_name.invalid && form.controls.full_name.touched">
+      Full name is required.
+    </p>
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
+
+    <button type="submit" [disabled]="form.invalid || isSaving">
+      {{ isSaving ? 'Saving...' : editingCustomerId ? 'Update customer' : 'Create customer' }}
+    </button>
+  </form>
+
+  <section class="panel table-panel">
+    <header>
+      <span>Name</span>
+      <span>Company</span>
+      <span>Contact</span>
+      <span>Actions</span>
+    </header>
+    <article *ngFor="let customer of customers">
+      <div>
+        <strong>{{ customer.full_name }}</strong>
+        <p>{{ customer.notes || 'No notes yet.' }}</p>
+      </div>
+      <span>{{ customer.company_name || 'Independent' }}</span>
+      <span>{{ customer.email || customer.phone || 'No contact data' }}</span>
+      <div class="row-actions">
+        <button type="button" class="secondary" (click)="editCustomer(customer)">Edit</button>
+        <button type="button" class="danger" [disabled]="deletingCustomerId === customer.id" (click)="deleteCustomer(customer)">
+          {{ deletingCustomerId === customer.id ? 'Deleting...' : 'Delete' }}
+        </button>
+      </div>
+    </article>
+    <p class="empty" *ngIf="customers.length === 0">No customers found for the active tenant.</p>
+  </section>
+</section>

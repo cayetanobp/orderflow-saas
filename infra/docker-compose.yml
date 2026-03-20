@@ -1,0 +1,100 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: orderflow
+      POSTGRES_USER: orderflow
+      POSTGRES_PASSWORD: orderflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderflow -d orderflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+    env_file:
+      - ../.env.example
+    environment:
+      RUN_DEMO_SEED: "true"
+    volumes:
+      - ../backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
+  worker:
+    build:
+      context: ../backend
+    command: celery -A config worker -l info
+    env_file:
+      - ../.env.example
+    volumes:
+      - ../backend:/app
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      CI: "true"
+      NG_CLI_ANALYTICS: "false"
+    working_dir: /workspace
+    volumes:
+      - ../frontend:/workspace
+      - frontend_node_modules:/workspace/node_modules
+    ports:
+      - "4200:4200"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:4200 > /dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
+  frontend-preview:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    profiles:
+      - preview
+
+volumes:
+  postgres_data:
+  frontend_node_modules:

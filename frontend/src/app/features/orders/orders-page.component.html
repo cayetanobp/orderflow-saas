@@ -1,0 +1,159 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Orders</p>
+    <h2>Production queue</h2>
+  </div>
+  <div class="actions">
+    <button type="button" class="secondary" (click)="resetForm()">New order</button>
+    <button type="button" (click)="load()">Refresh orders</button>
+  </div>
+</section>
+
+<p class="status" *ngIf="message">{{ message }}</p>
+
+<section class="workspace">
+  <form class="panel form-panel" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">{{ editingOrderId ? 'Edit order' : 'Create order' }}</p>
+        <h3>{{ editingOrderId ? 'Update operational record' : 'Add a new order' }}</h3>
+      </div>
+      <button *ngIf="editingOrderId" type="button" class="secondary" (click)="resetForm()">Cancel</button>
+    </div>
+
+    <label>
+      Customer
+      <select formControlName="customer">
+        <option [ngValue]="null">Select customer</option>
+        <option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.full_name }}</option>
+      </select>
+    </label>
+
+    <div class="grid-two">
+      <label>
+        Order code
+        <input type="text" formControlName="code" placeholder="ORD-1001">
+      </label>
+      <label>
+        Due date
+        <input type="date" formControlName="due_date">
+      </label>
+    </div>
+
+    <label>
+      Title
+      <input type="text" formControlName="title" placeholder="Production title">
+    </label>
+
+    <div class="grid-two">
+      <label>
+        Status
+        <select formControlName="status">
+          <option *ngFor="let statusOption of statusOptions" [value]="statusOption.value">{{ statusOption.label }}</option>
+        </select>
+      </label>
+      <label>
+        Priority
+        <select formControlName="priority">
+          <option *ngFor="let priorityOption of priorityOptions" [value]="priorityOption.value">{{ priorityOption.label }}</option>
+        </select>
+      </label>
+    </div>
+
+    <label>
+      Description
+      <textarea rows="4" formControlName="description" placeholder="Operational description"></textarea>
+    </label>
+
+    <section class="items-panel" formArrayName="items">
+      <div class="items-header">
+        <h4>Line items</h4>
+        <button type="button" class="secondary" (click)="addItem()">Add item</button>
+      </div>
+
+      <div class="item-card" *ngFor="let itemGroup of items.controls; let itemIndex = index" [formGroupName]="itemIndex">
+        <div class="grid-two">
+          <label>
+            Name
+            <input type="text" formControlName="name" placeholder="Design, print, install...">
+          </label>
+          <label>
+            Quantity
+            <input type="number" min="1" formControlName="quantity">
+          </label>
+        </div>
+        <div class="grid-two">
+          <label>
+            Unit price
+            <input type="number" min="0" step="0.01" formControlName="unit_price">
+          </label>
+          <label>
+            Notes
+            <input type="text" formControlName="notes" placeholder="Optional line note">
+          </label>
+        </div>
+        <button type="button" class="danger inline" (click)="removeItem(itemIndex)" [disabled]="items.length === 1">Remove item</button>
+      </div>
+    </section>
+
+    <p class="summary-line">Estimated total: <strong>{{ estimatedTotal | number:'1.2-2' }}</strong></p>
+    <p class="error" *ngIf="form.invalid && form.touched">Complete the required order fields before saving.</p>
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
+
+    <button type="submit" [disabled]="form.invalid || isSaving || customers.length === 0">
+      {{ isSaving ? 'Saving...' : editingOrderId ? 'Update order' : 'Create order' }}
+    </button>
+
+    <section class="transition-panel" *ngIf="editingOrderId">
+      <div class="items-header">
+        <h4>Status transition</h4>
+      </div>
+      <div class="grid-two">
+        <label>
+          Next status
+          <select [value]="transitionStatus" (change)="transitionStatus = $any($event.target).value">
+            <option *ngFor="let statusOption of statusOptions" [value]="statusOption.value">{{ statusOption.label }}</option>
+          </select>
+        </label>
+        <label>
+          Transition note
+          <input type="text" [value]="transitionNote" (input)="transitionNote = $any($event.target).value" placeholder="Why the status changed">
+        </label>
+      </div>
+      <button type="button" class="secondary" (click)="transitionSelectedOrder()" [disabled]="isTransitioning">{{ isTransitioning ? 'Applying...' : 'Apply transition' }}</button>
+    </section>
+  </form>
+
+  <section class="cards-panel">
+    <section class="cards" *ngIf="orders.length > 0">
+      <article class="panel card" *ngFor="let order of orders">
+        <div class="code-row">
+          <strong>{{ order.code }}</strong>
+          <span class="status-pill">{{ order.status }}</span>
+        </div>
+        <h3>{{ order.title }}</h3>
+        <p>{{ order.description || 'No description provided.' }}</p>
+        <div class="meta-stack">
+          <span>Customer: {{ order.customer_name || customerName(order.customer) }}</span>
+          <span>Priority: {{ order.priority }}</span>
+          <span>Total: {{ order.total_amount }}</span>
+        </div>
+        <div class="row-actions">
+          <button type="button" class="secondary" (click)="editOrder(order)">Edit</button>
+          <button type="button" class="danger" [disabled]="deletingOrderId === order.id" (click)="deleteOrder(order)">
+            {{ deletingOrderId === order.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+        <div class="history" *ngIf="order.history.length > 0">
+          <h4>Recent transitions</h4>
+          <div class="history-row" *ngFor="let entry of order.history.slice(0, 3)">
+            <span>{{ entry.from_status || 'initial' }} → {{ entry.to_status }}</span>
+            <small>{{ entry.note || 'No note' }}</small>
+          </div>
+        </div>
+      </article>
+    </section>
+    <p class="empty" *ngIf="orders.length === 0">No orders found for the active tenant.</p>
+  </section>
+</section>

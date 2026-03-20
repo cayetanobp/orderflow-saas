@@ -1,0 +1,162 @@
+.shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto; /* scroll interno si el nav es muy largo */
+  flex-shrink: 0;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgba(255, 253, 248, 0.86);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid var(--border);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 0;
+  font-size: 40px;
+}
+
+.summary {
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 26ch;
+}
+
+.nav {
+  display: grid;
+  gap: 10px;
+  margin: 40px 0;
+}
+
+.nav a {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  color: var(--muted);
+  transition: 120ms ease;
+  text-align: left;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.nav a.active,
+.nav a:hover,
+.nav-button:hover {
+  background: var(--panel-strong);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.nav-button {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  color: var(--muted);
+  transition: 120ms ease;
+  text-align: left;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tenant-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.tenant-card h2,
+.tenant-card p {
+  margin: 0 0 8px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+select {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  background: white;
+}
+
+.content {
+  padding: 32px;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    gap: 24px;
+  }
+}
+
+/* Móvil: sidebar oculto por defecto y botón hamburguesa */
+.hamburger {
+  display: none; /* shown only on small screens */
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none; /* oculto por defecto en móvil */
+    position: fixed;
+    z-index: 100;
+    height: 100vh;
+    width: 260px;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+  }
+
+  .sidebar.open {
+    display: block;
+    transform: translateX(0);
+  }
+
+  .hamburger {
+    display: block;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 200;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+
+  /* Ensure main content is still reachable under the fixed hamburger */
+  .content {
+    padding-top: 56px;
+  }
+}

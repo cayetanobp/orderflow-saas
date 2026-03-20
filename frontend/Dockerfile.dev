@@ -1,0 +1,14 @@
+ARG NODE_IMAGE=node:25-alpine
+
+FROM ${NODE_IMAGE}
+RUN apk add --no-cache chromium
+ENV CI=true
+ENV NG_CLI_ANALYTICS=false
+ENV CHROME_BIN=/usr/bin/chromium
+WORKDIR /workspace
+COPY package*.json ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+COPY docker/frontend-dev.sh /usr/local/bin/frontend-dev.sh
+RUN chmod +x /usr/local/bin/frontend-dev.sh
+EXPOSE 4200
+CMD ["/usr/local/bin/frontend-dev.sh"]
